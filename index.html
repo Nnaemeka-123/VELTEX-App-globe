@@ -317,7 +317,7 @@ const ago=t=>{const s=(Date.now()-t)/1000;return s<60?'now':s<3600?Math.floor(s/
 const linkify=h=>h.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/(^|\s)#(\w{1,40})/g,'$1<a data-a="tag" data-id="$2" style="color:var(--ac)">#$2</a>').replace(/(^|\s)@(\w{3,15})/g,'$1<a data-a="mention" data-id="$2" style="color:var(--ac)">@$2</a>');
 const hue=s=>[...s].reduce((a,c)=>a+c.charCodeAt(0),0)%360;
 const grad=s=>`linear-gradient(135deg,hsl(${hue(s)} 60% 22%),hsl(${(hue(s)+60)%360} 60% 12%))`;
-let _et=0;window.addEventListener('error',()=>{if(Date.now()-_et>6000){_et=Date.now();try{toast('Something went wrong. If the screen looks stuck, close and reopen the app.')}catch(e){}}});
+let _et=0;const _errs=[];window.addEventListener('error',e=>{try{_errs.push(String((e&&e.message)||''));if(_errs.length>20)_errs.shift();if(Date.now()-_et>4000){_et=Date.now();setTimeout(()=>{try{const m=document.querySelector('#main');if(m&&!m.children.length&&typeof render==='function')render()}catch(x){}},300)}}catch(x){}});window.addEventListener('unhandledrejection',e=>{try{if(e&&e.preventDefault)e.preventDefault()}catch(x){}});
 /* ---------- icons ---------- */
 const P=d=>`<path d="${d}"/>`;
 const I={home:P('M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'),
@@ -540,7 +540,7 @@ mute:(id,t)=>{soundOn=!soundOn;$$('#feed audio.snd').forEach(a=>a.muted=!soundOn
 function upd(id){if(view.n==='home')refreshRail(id);else if(view.n==='post'){const y=$('#main').scrollTop;render();$('#main').scrollTop=y}else{const y=$('#main').scrollTop;render();$('#main').scrollTop=y}}
 document.addEventListener('click',e=>{
  const x=e.target.closest('[data-x]');if(x){const s=x.closest('.sheet');s&&s.cl();return}
- const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a;if(A[a]){e.stopPropagation();const as=t.closest('.sheet.act');if(as)as.cl();try{const r=A[a](t.dataset.id,t,e);if(r&&r.catch)r.catch(er=>{console.error(er);toast('Something went wrong. Please try again.')})}catch(er){console.error(er);toast('Something went wrong. Please try again.')}}});
+ const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a;if(A[a]){e.stopPropagation();const as=t.closest('.sheet.act');if(as)as.cl();try{const r=A[a](t.dataset.id,t,e);if(r&&r.catch)r.catch(er=>{console.error(er);void 0})}catch(er){console.error(er);void 0}}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.dataset&&e.target.dataset.enter){e.preventDefault();A[e.target.dataset.enter]()}});
 /* ---------- auth ---------- */
 function authScreen(addMode){
@@ -744,7 +744,13 @@ function allSounds(q){q=(q||'').toLowerCase();const out=[];S.sounds.forEach(s=>{
  S.posts.forEach(p=>{if(p.mt==='video'&&!p.snd&&p.mid&&U(p.uid)&&!U(p.uid).banned){const i=sndInfo('p_'+p.id);if(i)out.push({...i,ts:p.ts})}});
  return out.filter(x=>!q||x.name.toLowerCase().includes(q)).map(x=>({...x,uses:sndUses(x.key)})).sort((a,b)=>b.uses-a.uses||b.ts-a.ts)}
 let sndAudio=null,sndPlaying=null;
-A.sprev=async k=>{if(sndPlaying===k&&sndAudio){sndAudio.pause();sndPlaying=null;refreshSndBtns();return}const i=sndInfo(k);if(!i)return;const u=i.url||await mediaUrl(i.mid);if(!sndAudio)sndAudio=new Audio();sndAudio.pause();sndAudio.src=u;sndAudio.loop=true;try{await sndAudio.play();sndPlaying=k}catch(e){toast('Could not play this sound');sndPlaying=null}refreshSndBtns()};
+async function sndStart(u){try{if(!u)return false;if(!sndAudio){sndAudio=new Audio();sndAudio.preload='auto'}const a=sndAudio;try{a.pause()}catch(e){}a.loop=true;a.src=u;
+ const go=async()=>{try{await a.play();return true}catch(e){return(e&&e.name==='AbortError')?'abort':false}};
+ let r=await go();if(r===true)return true;if(r==='abort')return false;
+ try{const resp=await fetch(u),b=await resp.blob();a.src=URL.createObjectURL(b);r=await go();if(r===true)return true;if(r==='abort')return false}catch(e){}
+ try{const v=document.createElement('video');v.src=u;v.loop=true;v.playsInline=true;await v.play();sndAudio=v;return true}catch(e){}
+ return false}catch(e){return false}}
+A.sprev=async k=>{if(sndPlaying===k&&sndAudio){try{sndAudio.pause()}catch(e){}sndPlaying=null;refreshSndBtns();return}const i=sndInfo(k);if(!i)return;sndPlaying=k;refreshSndBtns();const u=i.url||await mediaUrl(i.mid),ok=await sndStart(u);if(sndPlaying===k&&!ok)sndPlaying=null;refreshSndBtns()};
 function refreshSndBtns(){$$('[data-a="sprev"]').forEach(b=>b.innerHTML=ic(sndPlaying===b.dataset.id?'pause':'play',18))}
 function stopPreview(){if(sndAudio){sndAudio.pause()}sndPlaying=null}
 A.favsnd=k=>{const f=fv(me()),i=f.indexOf(k);if(i<0){f.push(k);toast('Added to favourites')}else{f.splice(i,1);toast('Removed from favourites')}save();const y=$('#main').scrollTop;if(view.n==='live'||view.n==='sound'){render();$('#main').scrollTop=y}const pk=$('#pklist');if(pk)pk.innerHTML=pickHtml($('#pkq')?$('#pkq').value:'')};
@@ -1621,21 +1627,29 @@ async function searchMusic(q){try{const r=await fetch('https://api.openverse.org
 const musicBox=()=>`<div class="sec">Free music library</div><div class="pad" style="padding-top:0"><div class="row"><input id="mq" class="fx" placeholder="Search songs, genres, moods" data-enter="musq"><button class="btn blue sm" data-a="musq">Search</button></div><p class="mu" style="font-size:12px;margin:6px 0">Creative Commons music. The artist is credited with the sound.</p></div><div id="mlist" class="list"></div>`;
 const musicRows=()=>MUS.res.map((m,i)=>`<div class="item"><button class="ib" style="background:var(--bg3)" data-a="mprev" data-id="${i}">${ic('play',18)}</button><div class="fx" style="min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.title)}</div><small>${esc(m.by)} · ${fmtDur(m.dur)} · ${esc(m.lic)}</small></div><button class="btn blue sm" data-a="muse" data-id="${i}">${MUS.cb?'Use':'Add'}</button></div>`).join('')||'<div class="empty" style="padding:14px">No songs found. Try another search.</div>';
 A.musq=async()=>{const q=($('#mq')||{}).value||'';const l=$('#mlist');if(l)l.innerHTML='<div class="empty" style="padding:14px">Searching…</div>';MUS.res=await searchMusic(q);const l2=$('#mlist');if(l2)l2.innerHTML=musicRows()};
-A.mprev=async i=>{const m=MUS.res[+i];if(!m)return;if(sndPlaying==='m'+i&&sndAudio){sndAudio.pause();sndPlaying=null;return}if(!sndAudio)sndAudio=new Audio();sndAudio.pause();sndAudio.src=m.url;sndAudio.loop=true;try{await sndAudio.play();sndPlaying='m'+i}catch(e){toast('Could not play this song')}};
+A.mprev=async i=>{const m=MUS.res[+i];if(!m)return;if(sndPlaying==='m'+i&&sndAudio){try{sndAudio.pause()}catch(e){}sndPlaying=null;return}sndPlaying='m'+i;const ok=await sndStart(m.url);if(!ok&&sndPlaying==='m'+i)sndPlaying=null};
 A.muse=i=>{const m=MUS.res[+i];if(!m)return;let s=S.sounds.find(x=>x.url===m.url);if(!s){s={id:'s_'+uid(),uid:sess.cur,name:m.title+' · '+m.by,url:m.url,ext:1,lic:m.lic,src:m.src,ts:Date.now()};S.sounds.push(s);save()}stopPreview();if(MUS.cb){const cb=MUS.cb;MUS.cb=null;if(MUS.sheet)MUS.sheet.cl();cb(s.id)}else toast('Added to your sounds')};
-async function cropSound(key,cb,init){const i=sndInfo(key);if(!i)return;const src=i.url||await mediaUrl(i.mid);let dur=0,st=(init&&init.s)||0,len=(init&&init.l!=null)?init.l:30,bars=null;
- const s=sheet(`<div class="sh-h"><button data-x>${ic('x')}</button><b>Crop sound</b><button class="btn blue sm" id="crok">Done</button></div><div class="sb pad"><div style="font-weight:700">${esc(i.name)}</div><canvas id="crw" width="320" height="70" style="width:100%;height:70px;margin:12px 0;background:var(--bg2);border-radius:10px"></canvas><div class="lbl">Start at <b id="crs">0:00</b></div><input id="crr" type="range" min="0" max="100" step="1" value="0" style="padding:0"><div class="lbl">Length</div><div class="sw" id="crl">${[[15,'15s'],[30,'30s'],[60,'60s'],[0,'Full']].map(x=>`<button data-l="${x[0]}" class="${len===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><button class="btn out" style="width:100%;margin-top:14px" id="crp">Play selection</button><audio id="cra" preload="metadata"></audio></div>`);
- const au=$('#cra',s);au.src=src;
- const draw=()=>{const cv=$('#crw',s);if(!cv||!cv.getContext)return;const x=cv.getContext('2d'),W=cv.width,H=cv.height;x.clearRect(0,0,W,H);const n=64,bw=W/n;for(let k=0;k<n;k++){const v=bars?bars[k]:.35+.25*Math.sin(k*.7);x.fillStyle='#71767b';x.fillRect(k*bw+1,H/2-v*H/2,bw-2,v*H)}if(dur){const a=st/dur*W,b=(len?Math.min(dur,st+len):dur)/dur*W;x.fillStyle='rgba(29,155,240,.35)';x.fillRect(a,0,Math.max(4,b-a),H);x.fillStyle='#1d9bf0';x.fillRect(a,0,2,H);x.fillRect(b-2,0,2,H)}};
- const upd=()=>{const e=$('#crs',s);if(e)e.textContent=fmtDur(st);draw()};
- const setMax=()=>{const r=$('#crr',s);if(!r)return;r.max=Math.max(0,Math.floor(dur-(len||0)));if(st>+r.max)st=+r.max;r.value=st};
- au.onloadedmetadata=()=>{dur=au.duration||0;setMax();upd()};
- $('#crr',s).oninput=e=>{st=+e.target.value;try{au.currentTime=st}catch(x){}upd()};
- $('#crl',s).onclick=e=>{const b=e.target.closest('[data-l]');if(!b)return;len=+b.dataset.l;$$('#crl button',s).forEach(x=>x.classList.toggle('on',x===b));setMax();upd()};
- let tm=null;$('#crp',s).onclick=async()=>{clearTimeout(tm);try{au.currentTime=st;await au.play()}catch(e){return toast('Could not play')}if(len)tm=setTimeout(()=>au.pause(),len*1000)};
- s._cl=()=>{clearTimeout(tm);try{au.pause()}catch(e){}};
- $('#crok',s).onclick=()=>{cb(st,len);s.cl()};upd();
- try{const ab=await(await fetch(src)).arrayBuffer(),AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),buf=await ac.decodeAudioData(ab),d=buf.getChannelData(0),n=64,step=Math.floor(d.length/n);bars=[];for(let k=0;k<n;k++){let m=0;for(let q=0;q<step;q+=Math.max(1,Math.floor(step/80)))m=Math.max(m,Math.abs(d[k*step+q]||0));bars.push(Math.max(.08,Math.min(1,m*1.4)))}try{ac.close()}catch(e){}draw()}catch(e){}}
+async function cropSound(key,cb,init){const i=sndInfo(key);if(!i)return;const src=i.url||await mediaUrl(i.mid);let dur=0,st=(init&&init.s)||0,en=0,bars=null,drag=null,tm=null,playing=false;const initL=(init&&init.l)||0,MIN=1;
+ const s=sheet(`<div class="sh-h"><button data-x>${ic('x')}</button><b>Crop sound</b><button class="btn blue sm" id="crok">Done</button></div><div class="sb pad"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name)}</div><p class="mu" style="font-size:13px;margin:6px 0 10px">Drag the two white handles to choose the part you want. Drag the blue middle to slide the whole selection.</p><canvas id="crw" width="640" height="160" style="width:100%;height:110px;background:var(--bg2);border-radius:12px;touch-action:none;display:block"></canvas><div class="row" style="justify-content:space-between;margin:10px 2px;font-size:14px"><span>Start <b id="crs">0:00</b></span><span>Length <b id="crn">0:00</b></span><span>End <b id="cre">0:00</b></span></div><button class="btn out" style="width:100%;margin-top:6px" id="crp">Play selection</button><audio id="cra" preload="metadata"></audio></div>`);
+ const au=$('#cra',s),cv=$('#crw',s);au.src=src;
+ const draw=ph=>{if(!cv||!cv.getContext)return;const x=cv.getContext('2d'),W=cv.width,H=cv.height;x.clearRect(0,0,W,H);const n=100,bw=W/n,a=dur?st/dur*W:0,b=dur?en/dur*W:W;
+  for(let k=0;k<n;k++){const cx=k*bw+bw/2,v=bars?bars[k]:.3,inside=dur&&cx>=a&&cx<=b;x.fillStyle=inside?'#1d9bf0':'#536471';const h=Math.max(6,v*(H-30));x.fillRect(k*bw+1,H/2-h/2,bw-2.5,h)}
+  if(dur){x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,0,a,H);x.fillRect(b,0,W-b,H);x.fillStyle='#fff';x.fillRect(a-3,0,6,H);x.fillRect(b-3,0,6,H);x.fillRect(a,0,b-a,3);x.fillRect(a,H-3,b-a,3);if(ph!=null&&ph>=st&&ph<=en){x.fillStyle='#fff';x.fillRect(ph/dur*W-1,0,2,H)}}};
+ const f=v=>fmtDur(Math.round(v));
+ const upd=()=>{const g=(id,v)=>{const e=$(id,s);if(e)e.textContent=v};g('#crs',f(st));g('#cre',f(en));g('#crn',f(en-st));draw()};
+ const stopPlay=()=>{clearInterval(tm);playing=false;try{au.pause()}catch(e){}const b=$('#crp',s);if(b)b.textContent='Play selection';draw()};
+ const play=()=>{if(!dur)return;clearInterval(tm);playing=true;const b=$('#crp',s);if(b)b.textContent='Pause';try{au.currentTime=st;const pr=au.play();if(pr&&pr.catch)pr.catch(()=>{})}catch(e){}tm=setInterval(()=>{if(au.currentTime>=en-.05||au.currentTime<st-.6){try{au.currentTime=st}catch(e){}}draw(au.currentTime)},80)};
+ au.onloadedmetadata=()=>{dur=isFinite(au.duration)?au.duration:0;if(!dur)return;st=Math.max(0,Math.min(st,dur-MIN));en=initL?Math.min(dur,st+initL):Math.min(dur,st+30);if(en-st<MIN)en=Math.min(dur,st+MIN);upd()};
+ const tAt=e=>{const r=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/(r.width||1)))*dur};
+ const move=t=>{if(!drag)return;if(drag.k==='s')st=Math.max(0,Math.min(t,en-MIN));else if(drag.k==='e')en=Math.min(dur,Math.max(t,st+MIN));else{const L=en-st;st=Math.max(0,Math.min(t-drag.o,dur-L));en=st+L}upd()};
+ cv.onpointerdown=e=>{if(!dur)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}stopPlay();const t=tAt(e),r=cv.getBoundingClientRect(),px=dur/(r.width||1)*28;
+  if(Math.abs(t-st)<=px)drag={k:'s'};else if(Math.abs(t-en)<=px)drag={k:'e'};else if(t>st&&t<en)drag={k:'m',o:t-st};else{drag={k:Math.abs(t-st)<Math.abs(t-en)?'s':'e'};move(t)}};
+ cv.onpointermove=e=>{if(drag)move(tAt(e))};
+ const rel=()=>{if(drag){drag=null;play()}};cv.onpointerup=rel;cv.onpointercancel=rel;
+ $('#crp',s).onclick=()=>{playing?stopPlay():play()};
+ s._cl=()=>{clearInterval(tm);try{au.pause()}catch(e){}};
+ $('#crok',s).onclick=()=>{const full=st<.2&&en>=dur-.2;cb(Math.round(st*10)/10,full?0:Math.round((en-st)*10)/10);s.cl()};upd();
+ try{const ab=await(await fetch(src)).arrayBuffer(),AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),buf=await ac.decodeAudioData(ab),d=buf.getChannelData(0),n=100,step=Math.floor(d.length/n);bars=[];for(let k=0;k<n;k++){let m=0;for(let q=0;q<step;q+=Math.max(1,Math.floor(step/80)))m=Math.max(m,Math.abs(d[k*step+q]||0));bars.push(Math.max(.08,Math.min(1,m*1.4)))}try{ac.close()}catch(e){}draw()}catch(e){}}
 /* ---------- settings ---------- */
 const SET_T={acct:'Your account',ainfo:'Account information',sec:'Security and account access',priv:'Privacy and safety',noti:'Notifications',disp:'Display and sound',help:'Help Centre'};
 const pref=(u,k,d=true)=>u&&u.prefs&&u.prefs[k]!==undefined?u.prefs[k]:d;
