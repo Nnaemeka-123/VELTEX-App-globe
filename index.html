@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1, interactive-widget=resizes-content">
 <title>VELTEX – Videos, photos, live streams and games</title>
 <meta name="description" content="VELTEX is a social app to post videos and photos, subscribe to creators, chat, go live, play games and earn from your content.">
 <meta name="keywords" content="VELTEX, social app, short videos, go live, subscribe, creators, monetize, online games, chat">
@@ -264,6 +264,10 @@ html[data-theme=light] .item:active,html[data-theme=light] .tkr:active{backgroun
 
 .rpl{top:calc(98px + env(safe-area-inset-top))}
 #app.imm .rpl{top:calc(98px + env(safe-area-inset-top))}
+
+/* keyboard open: hide the bottom menu so it never pops up above the keyboard */
+html.kb #bottom{display:none!important}
+html.kb #app.imm #main{bottom:0}
 </style>
 </head>
 <body>
@@ -412,7 +416,7 @@ function adminTabFor(x){x=String(x||'');return /top-up|badge payment/i.test(x)?'
 function notify(to,type,from,pid,txt){if(to===from)return;const tu=U(to);if(tu&&tu.prefs&&tu.prefs['n_'+type]===false)return;S.notifs.unshift({id:uid(),to,type,from,pid,txt,ts:Date.now(),read:false});if(S.notifs.length>4000)S.notifs.length=4000}
 function act(t,txt){S.log.unshift({id:uid(),uid:sess.cur||null,ts:Date.now(),t,txt});if(S.log.length>800)S.log.length=800}
 function sendMsg(from,to,text,off,att){S.msgs.push({id:uid(),from,to,text:text||'',ts:Date.now(),read:false,off:!!off,att:att||null})}
-const msgPreview=m=>m.del?'🚫 Message deleted':m.att?(m.att.k==='aud'?'🎤 Voice message':m.att.k==='img'?'📷 Photo':m.att.s||'Sticker'):String(m.text||'')
+const msgPreview=m=>m.del?'🚫 Message deleted':m.att?(m.att.k==='aud'?'🎤 Voice message':m.att.k==='img'?'📷 Photo':m.att.k==='vid'?'🎬 Video':m.att.s||'Sticker'):String(m.text||'')
 const A_ID='u_veltex';
 function official(to,text){sendMsg(A_ID,to,text,true);notify(to,'official',A_ID,null,text)}
 /* ---------- ui helpers ---------- */
@@ -695,10 +699,10 @@ A.newchat=()=>{const s=sheet(`<div class="sh-h"><button data-x>${ic('x')}</butto
 A.chatx=id=>{$$('.sheet').forEach(s=>s.cl());A.chat(id)};
 function rChat(){const u=U(view.id),m=$('#main');if(!u){back();return}
  S.msgs.forEach(x=>{if(x.to===sess.cur&&x.from===u.id)x.read=true});save();refreshChrome();
- $('#top').innerHTML=`<button class="ib" data-a="back">${ic('back')}</button><div class="t" data-a="prof" data-id="${u.id}" style="gap:10px;min-width:0;font-size:16px">${avd(u,42)}<div class="fx" style="min-width:0;line-height:1.25"><div style="display:flex;align-items:center;gap:4px;font-weight:800;font-size:16px;white-space:nowrap"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(u.name)}</span>${badge(u.badge,16)}${u.official?'<span class="ofl">OFFICIAL</span>':''}</div><div style="font-size:12px;font-weight:400;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.isBot?'Automated assistant':'@'+esc(u.username)+(presence(u)?' · '+presence(u):'')}</div></div></div><button class="ib" data-a="pcall" data-id="${u.id}" aria-label="Voice call">${ic('phone')}</button><button class="ib" data-a="vcall" data-id="${u.id}" aria-label="Video call">${ic('video')}</button><button class="ib" data-a="chatmenu" aria-label="More">${ic('more')}</button>`+$('#top').innerHTML.slice($('#top').innerHTML.lastIndexOf('<button class="ib" data-a="notifs"'));
+ $('#top').innerHTML=`<button class="ib" data-a="back">${ic('back')}</button><div class="t" data-a="prof" data-id="${u.id}" style="gap:10px;min-width:0;font-size:16px">${avd(u,42)}<div class="fx" style="min-width:0;line-height:1.25"><div style="display:flex;align-items:center;gap:4px;font-weight:800;font-size:16px;white-space:nowrap"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(u.name)}</span>${badge(u.badge,16)}${u.official?'<span class="ofl">OFFICIAL</span>':''}</div><div style="font-size:12px;font-weight:400;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.isBot?'Automated assistant':'@'+esc(u.username)+(presence(u)?' · '+presence(u):'')}</div></div></div><button class="ib" data-a="pcall" data-id="${u.id}" aria-label="Voice call">${ic('phone')}</button><button class="ib" data-a="vcall" data-id="${u.id}" aria-label="Video call">${ic('video')}</button><button class="ib" data-a="chatmenu" aria-label="More">${ic('more')}</button>`;
  const ms=S.msgs.filter(x=>((x.from===sess.cur&&x.to===u.id)||(x.from===u.id&&x.to===sess.cur))&&!(x.hid||[]).includes(sess.cur));
  m.className='nofx';m.innerHTML=`<div style="display:flex;flex-direction:column;height:100%">${pinBanner(ms)}<div class="chat fx" id="cl" style="overflow-y:auto">${ms.map(x=>`<div class="bub ${x.from===sess.cur?'me':'th'}" data-a="mact" data-id="${x.id}">${x.pin?'📌 ':''}${x.off?'<small style="margin:0 0 4px;opacity:1"><b>Official VELTEX message</b></small>':''}${msgBody(x)}<small>${ago(x.ts)}</small></div>`).join('')||'<div class="empty">Say hello</div>'}</div>
- ${u.id===A_ID&&!isAdmin()?'':''}${dmDenied(u)?denyBar(u):`<div class="bar" style="align-items:center"><button class="ib" data-a="stk" aria-label="Stickers" style="font-size:22px">😊</button><label class="ib" aria-label="Send photo" style="cursor:pointer">${ic('img',22)}<input type="file" id="mimg" accept="image/*" hidden></label><input id="min" class="fx" placeholder="Message" data-enter="sendc" maxlength="1000"><button class="ib" id="mmic" data-a="vnrec" aria-label="Voice note">${ic('mic',22)}</button><button class="send" data-a="sendc">${ic('send',20)}</button></div>`}</div>`;
+ ${u.id===A_ID&&!isAdmin()?'':''}${dmDenied(u)?denyBar(u):`<div class="bar" style="align-items:center"><button class="ib" data-a="stk" aria-label="Stickers" style="font-size:22px">😊</button><label class="ib" aria-label="Send photo" style="cursor:pointer">${ic('img',22)}<input type="file" id="mimg" accept="image/*,video/*" hidden></label><input id="min" class="fx" placeholder="Message" data-enter="sendc" maxlength="1000"><button class="ib" id="mmic" data-a="vnrec" aria-label="Voice note">${ic('mic',22)}</button><button class="send" data-a="sendc">${ic('send',20)}</button></div>`}</div>`;
  const cl=$('#cl');cl.scrollTop=cl.scrollHeight;hydrate(m);const mi=$('#mimg');if(mi)mi.onchange=attImg}
 A.sendc=()=>{const i=$('#min'),t=i.value.trim();if(!t)return;const u=U(view.id);if(u.banned)return toast('This account is banned');{const dn=dmDenied(u);if(dn)return toast(dn)}sendMsg(sess.cur,u.id,t,false);if(u.isBot)botAuto(u,t);act('message',`@${me().username} → @${u.username}: ${t.slice(0,60)}`);save();render();i.focus&&setTimeout(()=>$('#min')&&$('#min').focus(),50)};
 /* ---------- notifications ---------- */
@@ -913,10 +917,11 @@ A.dl=async id=>{const p=P_(id);if(!p||!p.mid)return;const un=(U(p.uid)||{}).user
 /* ---------- VELTEX bot ---------- */
 const findU=x=>S.users.find(u=>u.username===String(x||'').replace(/^@/,'').toLowerCase());
 function botMsg(id,to,text){if(S.msgs.some(m=>m.id===id))return;const ts=Date.now();S.msgs.push({id,from:A_ID,to,text,ts,read:false,off:true});S.notifs.unshift({id:'n'+id,to,type:'official',from:A_ID,pid:null,txt:text,ts,read:false})}
-const BOT_CMDS=['help','stats','activate','ban','unban','verify','unverify','message','broadcast'];
+const BOT_CMDS=['boost','help','stats','activate','ban','unban','verify','unverify','message','broadcast'];
 function botExec(raw,tid){const s=String(raw).trim(),m=s.match(/^(\w+)\s*([\s\S]*)$/),c=(m?m[1]:'').toLowerCase(),rest=m?m[2].trim():'',bid=k=>tid?'bt'+tid+'_'+k:'bm'+uid();
  const tok=rest.split(/\s+/),u=findU(tok[0]);
  switch(c){
+ case 'boost':{const n=parseInt(tok[1]),kind=String(tok[2]||'').toLowerCase(),type=kind.startsWith('sub')?'subs':kind.startsWith('view')?'views':'';if(!u||!(n>0)||!type)return 'Use: boost @username 500 subscribers   or   boost @username 1000 views';let pid=null;if(type==='views'){const ps=S.posts.filter(p=>p.uid===u.id&&p.mt==='video').sort((a,b)=>b.ts-a.ts);if(!ps.length)return '@'+u.username+' has no video to boost yet.';pid=ps[0].id}const b={id:uid(),uid:u.id,type,pid,target:n,cost:0,days:(S.settings.boost&&S.settings.boost.days)||7,ts:Date.now(),status:'queued',base:0,refund:0,q:'high'};S.boosts.push(b);activateBoost(b);act('boost',`Bot boosted @${u.username}: ${type} ${n}`);return `Boost started for @${u.username}: ${n} ${type==='subs'?'subscribers':'views'}. It shows the ${type==='subs'?'account':'latest video'} to real people for ${b.days} days.`}
  case 'badges':{const L=S.users.filter(x=>x.badgeExp&&x.badge&&x.badge!=='none'&&!x.official).sort((a,b)=>a.badgeExp-b.badgeExp);return L.length?L.slice(0,25).map(x=>`@${x.username} · ${BADGE_N[x.badge]} · ends ${fmtDate(x.badgeExp)}`).join('\n'):'No paid badges right now.'}
  case 'help':return 'I can do these:\n• stats\n• activate (start all waiting boosts)\n• ban @user\n• unban @user\n• verify @user blue|silver|gold\n• unverify @user\n• message @user your text\n• broadcast your text\n\nSchedule any of them:\n• in 30m broadcast Hello\n• in 2h ban @user\n• at 18:30 broadcast Good evening';
  case 'stats':{const n=Date.now(),d=864e5;return `${S.users.length} users (${S.users.filter(x=>n-x.ts<d).length} new today)\n${S.posts.length} posts (${S.posts.filter(x=>n-x.ts<d).length} today)\n${S.msgs.length} messages\n${S.orders.filter(o=>o.status==='pending').length} badge payments waiting\n${S.payouts.filter(p=>p.status==='pending').length} payout requests\n${S.users.filter(x=>x.banned).length} banned accounts`}
@@ -1220,14 +1225,14 @@ A.crcancel=()=>{view.rp=null;render()};
 A.crepost=v=>{const[pid,cid]=v.split('|'),p=P_(pid),c=p&&p.comments.find(x=>x.id===cid),u=c&&U(c.uid);if(!u)return;if(!confirm('Repost this comment to your profile?'))return;p.cr=p.cr||{};const a=p.cr[cid]=p.cr[cid]||[];if(!a.includes(sess.cur))a.push(sess.cur);
  const np={id:uid(),uid:sess.cur,text:`🔁 @${u.username}: ${c.text}`,mt:'text',mid:null,ts:Date.now(),likes:[],reposts:[],comments:[],views:0,rc:{pid,cid}};S.posts.unshift(np);notify(c.uid,'clike',sess.cur,np.id);act('repost',`@${me().username} reposted a comment by @${u.username}`);save();toast('Comment reposted');render()};
 
-function msgBody(x){if(x.del)return '<i style="opacity:.7">🚫 This message was deleted</i>';const a=x.att;if(a){if(a.k==='img')return `<img data-mid="${a.mid}" alt="" style="max-width:230px;width:100%;border-radius:12px;display:block">`;if(a.k==='aud')return `<audio data-mid="${a.mid}" controls preload="none" style="width:210px;height:38px"></audio><small style="display:block">🎤 ${fmtDur(a.dur)}</small>`;if(a.k==='stk')return `<div style="font-size:64px;line-height:1.1">${esc(a.s)}</div>`}return msgBody0(x)}
+function msgBody(x){if(x.del)return '<i style="opacity:.7">🚫 This message was deleted</i>';const a=x.att;if(a){if(a.k==='img')return `<img data-a="mview" data-id="${x.id}" data-mid="${a.mid}" alt="" style="max-width:230px;width:100%;border-radius:12px;display:block;min-height:80px;background:var(--bg3)">`;if(a.k==='vid')return `<video data-a="noop" data-mid="${a.mid}" controls playsinline preload="metadata" style="max-width:230px;width:100%;border-radius:12px;display:block;background:#000;min-height:120px"></video><button class="btn out sm" style="margin-top:6px" data-a="msave" data-id="${x.id}">Save to phone</button>`;if(a.k==='aud')return `<audio data-mid="${a.mid}" controls preload="none" style="width:210px;height:38px"></audio><small style="display:block">🎤 ${fmtDur(a.dur)}</small>`;if(a.k==='stk')return `<div style="font-size:64px;line-height:1.1">${esc(a.s)}</div>`}return msgBody0(x)}
 const STICKERS=['😂','😍','🥰','😎','🤩','😭','🙏','👍','🔥','💯','🎉','❤️','😘','🤝','💪','👏','😅','🤔','😴','🥳','🤣','😡','💔','✨'];
 function hasBadge2(u){return !!(u&&u.badge&&u.badge!=='none')}
 function dmDenied(u){if(isAdmin()||u.isBot||u.id===sess.cur)return'';const d=u.prefs&&u.prefs.dm,m=me();if(d==='subs'&&!m.subs.includes(u.id)&&!u.subs.includes(sess.cur))return'This account only accepts messages from its subscribers';if(d==='ver'&&hasBadge2(u)&&!hasBadge2(m)&&!m.official)return'This account only accepts messages from verified accounts';return''}
 function denyBar(u){const ver=u.prefs&&u.prefs.dm==='ver';return `<div class="pad" style="border-top:1px solid var(--bd);text-align:center"><b>${ver?'Only verified accounts can message this user':'This account only accepts messages from its subscribers'}</b><p class="mu" style="margin:6px 0 12px">${ver?'Upgrade to premium to message this user.':'Subscribe to this account to message them.'}</p>${ver?'<button class="btn blue" style="padding:10px 22px" data-a="go" data-id="verify">Upgrade to premium</button>':`<button class="btn blue" style="padding:10px 22px" data-a="sub" data-id="${u.id}">Subscribe</button>`}</div>`}
 function dmBlocked(u){if(u.banned){toast('This account is banned');return true}const dn=dmDenied(u);if(dn){toast(dn);return true}return false}
 function sendAtt(att){const u=U(view.id);if(!u||dmBlocked(u))return;sendMsg(sess.cur,u.id,'',false,att);act('message',`@${me().username} → @${u.username}: ${msgPreview({att})}`);save();render()}
-async function attImg(e){const f=e.target.files[0];e.target.value='';if(!f)return;const b=await shrink(f,1000);if(!b)return toast('Cannot open that image');const mid=uid();await kvSet('m:'+mid,b);sendAtt({k:'img',mid})}
+async function attImg(e){const f=e.target.files[0];e.target.value='';if(!f)return;if(String(f.type).startsWith('video/')){if(f.size>48*1024*1024)return toast('That video is too large. Send one under 48 MB.');toast('Sending video…');try{const mid=uid();await kvSet('m:'+mid,f);sendAtt({k:'vid',mid,sz:f.size})}catch(x){toast('Could not send the video. Your storage may be full.')}return}const b=await shrink(f,1600);if(!b)return toast('Cannot open that image');const mid=uid();await kvSet('m:'+mid,b);sendAtt({k:'img',mid})}
 A.stk=()=>sheet(`<div class="sh-h"><button data-x>${ic('x')}</button><b>Stickers</b></div><div class="sb"><div class="stkg">${STICKERS.map(s=>`<button data-a="stksend" data-id="${s}">${s}</button>`).join('')}</div></div>`);
 A.stksend=s=>{$$('.sheet').forEach(x=>x.cl());sendAtt({k:'stk',s})};
 const VN={rec:null,chunks:[],t0:0,iv:null,stream:null};
@@ -1417,7 +1422,7 @@ function vbotReply(text){const low=String(text).toLowerCase().trim();
   const b={id:uid(),uid:u.id,type:typ,pid,target:n,cost:0,days:S.settings.boost.days||7,ts:Date.now(),status:'queued',base:0,refund:0,q:'high'};S.boosts.push(b);activateBoost(b);save();return `Boss, done. I started a free ${BT[typ].n.toLowerCase()} boost of ${fnum(n)} for @${u.username}. Real people will see it as Promoted.`}
  m=low.match(/^subscribe\s+(?:to\s+)?@?(\w+)/);if(m){const u=findU(m[1]);if(!u)return 'Boss, I could not find that user.';if(!u.subs.includes('u_vbot')){u.subs.push('u_vbot');(u.sg=u.sg||[]).push(Date.now());notify(u.id,'sub','u_vbot')}save();return `Boss, the VELTEX Bot account now subscribes to @${u.username}.`}
  if(/^(help|\?)/.test(low))return 'Boss, tell me what to do. I can: ban or unban @user, verify @user blue/silver/gold, unverify @user, message @user text, broadcast text, activate (start waiting boosts), boost @user 1000 subscribers (free promotion), subscribe @user, and stats.';
- const first=low.split(/\s+/)[0];if(['ban','unban','verify','unverify','message','broadcast','activate','stats','badges'].includes(first)){const r=botExec(text);save();return 'Boss, '+r}
+ const first=low.split(/\s+/)[0];if(['ban','unban','verify','unverify','message','broadcast','activate','stats','badges','boost'].includes(first)){const r=botExec(text);save();return 'Boss, '+r}
  return 'Boss, I did not understand. Say help to see what I can do.'}
 function botAuto(b,text){const me0=sess.cur;setTimeout(()=>{let r='';
  if(b.id==='u_help')r=helpAnswer(text);else if(b.id==='u_badge')r=badgeAnswer(text);
@@ -1459,7 +1464,7 @@ function linkChips(u){const L=u.links||{};return Object.keys(LINKS).filter(k=>L[
 const sameConvo=(a,b)=>(a.from===b.from&&a.to===b.to)||(a.from===b.to&&a.to===b.from);
 function pinBanner(ms){const p=ms.filter(x=>x.pin&&!x.del).pop();return p?`<div class="row" style="padding:8px 14px;background:var(--bg2);font-size:13px;gap:8px" data-a="gopin" data-id="${p.id}"><span>📌</span><span class="fx" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(msgPreview(p))}</span></div>`:''}
 A.gopin=id=>{const el=document.querySelector(`[data-a="mact"][data-id="${id}"]`);if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'})};
-A.mact=id=>{const x=S.msgs.find(y=>y.id===id);if(!x||x.del)return;const it=[[x.pin?'Unpin message':'Pin message','mpin',id,0,'bookmark']];if(x.text)it.push(['Copy text','mcopy',id,0,'share']);it.push(['Delete for me','mdelme',id,1,'trash']);if(x.from===sess.cur||isAdmin())it.push(['Delete for everyone','mdelall',id,1,'trash']);actions(it)};
+A.mact=id=>{const x=S.msgs.find(y=>y.id===id);if(!x||x.del)return;const it=[[x.pin?'Unpin message':'Pin message','mpin',id,0,'bookmark']];if(x.att&&(x.att.k==='img'||x.att.k==='vid'))it.unshift(['Save to phone','msave',id,0,'dl']);if(x.text)it.push(['Copy text','mcopy',id,0,'share']);it.push(['Delete for me','mdelme',id,1,'trash']);if(x.from===sess.cur||isAdmin())it.push(['Delete for everyone','mdelall',id,1,'trash']);actions(it)};
 A.mpin=id=>{const x=S.msgs.find(y=>y.id===id);if(!x)return;const on=!x.pin;S.msgs.forEach(y=>{if(sameConvo(x,y)&&y.pin)y.pin=false});x.pin=on;save();render();toast(on?'Message pinned':'Message unpinned')};
 A.mcopy=async id=>{const x=S.msgs.find(y=>y.id===id);if(!x)return;try{await navigator.clipboard.writeText(x.text);toast('Copied')}catch(e){toast('Press and hold to copy')}};
 A.mdelme=id=>{const x=S.msgs.find(y=>y.id===id);if(!x)return;(x.hid=x.hid||[]).push(sess.cur);if(x.pin)x.pin=false;save();render()};
@@ -1699,11 +1704,19 @@ A['a-pcopy']=adm(async v=>{const[id,k]=String(v).split('|');let txt='';if(k==='l
 
 document.addEventListener('timeupdate',e=>{try{const v=e.target;if(v&&v.tagName==='VIDEO'&&v.duration){const c=v.closest('.card'),s=c&&c.querySelector('.seek');if(s)s.style.setProperty('--p',(v.currentTime/v.duration*100)+'%')}}catch(x){}},true);
 document.addEventListener('input',e=>{try{const s=e.target;if(s&&s.classList&&s.classList.contains('seek'))s.style.setProperty('--p',(s.value/10)+'%')}catch(x){}},true);
+
+(function(){const bad=['range','checkbox','radio','file','button','submit','color','image','reset'];const isTxt=e=>!!e&&(e.tagName==='TEXTAREA'||(e.tagName==='INPUT'&&bad.indexOf(String(e.type||'').toLowerCase())<0)||e.isContentEditable);let tm=null;
+ document.addEventListener('focusin',e=>{try{if(isTxt(e.target)){clearTimeout(tm);document.documentElement.classList.add('kb')}}catch(x){}});
+ document.addEventListener('focusout',()=>{try{clearTimeout(tm);tm=setTimeout(()=>{if(!isTxt(document.activeElement))document.documentElement.classList.remove('kb')},150)}catch(x){}})})();
 /* ---------- full screen helpers ---------- */
 document.addEventListener('loadedmetadata',e=>{try{const v=e.target;if(v&&v.tagName==='VIDEO'&&v.closest&&v.closest('.card'))v.style.objectFit=(v.videoHeight/(v.videoWidth||1))>1.2?'cover':'contain'}catch(x){}},true);
 document.addEventListener('load',e=>{try{const v=e.target;if(v&&v.tagName==='IMG'&&v.classList&&v.classList.contains('mi'))v.style.objectFit=(v.naturalHeight/(v.naturalWidth||1))>1.2?'cover':'contain'}catch(x){}},true);
 A.fscr=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen({navigationUI:'hide'});if(view.n==='settings')render()}catch(e){toast('Your browser does not allow full screen here. Tap the browser menu, choose Add to Home screen, then open VELTEX from your home screen.')}};
 document.addEventListener('fullscreenchange',()=>{try{if(view.n==='settings')render()}catch(e){}});
+
+A.noop=()=>{};
+A.msave=async id=>{const x=S.msgs.find(y=>y.id===id),a=x&&x.att;if(!a||!a.mid)return;toast('Saving…');try{let b=await kvGet('m:'+a.mid);if(!b){const r=await fetch(await mediaUrl(a.mid));b=await r.blob()}const ty=String(b.type||''),ext=a.k==='vid'?(ty.includes('webm')?'.webm':ty.includes('quicktime')?'.mov':'.mp4'):(ty.includes('png')?'.png':'.jpg');saveBlob(b,'veltex-'+id+ext);toast('Saved to your phone')}catch(e){toast('Could not save this file')}};
+A.mview=id=>{const x=S.msgs.find(y=>y.id===id),a=x&&x.att;if(!a||!a.mid)return;const s=sheet(`<div class="sh-h" style="border:0"><button data-x>${ic('x')}</button><b>Photo</b><button class="btn blue sm" data-a="msave" data-id="${id}">Save to phone</button></div><div class="sb" style="display:flex;align-items:center;justify-content:center;overflow:auto;touch-action:pan-x pan-y pinch-zoom"><img data-mid="${a.mid}" alt="" style="max-width:100%;max-height:100%;object-fit:contain"></div>`);s.style.background='#000';hydrate(s)};
 /* ---------- settings ---------- */
 const SET_T={acct:'Your account',ainfo:'Account information',sec:'Security and account access',priv:'Privacy and safety',noti:'Notifications',disp:'Display and sound',help:'Help Centre'};
 const pref=(u,k,d=true)=>u&&u.prefs&&u.prefs[k]!==undefined?u.prefs[k]:d;
