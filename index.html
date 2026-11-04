@@ -301,6 +301,26 @@ html.kb #app.imm #main{bottom:0}
 .typh{color:#00ba7c;font-weight:600}
 .vxb{display:inline-block;vertical-align:middle;margin-left:3px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 .chipc{border:1px solid var(--bd);border-radius:99px;padding:8px 16px;font-weight:600;white-space:nowrap;flex:none}.chipc.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+
+/* voice rooms (X Spaces look) */
+.vrm{position:fixed;inset:0;z-index:120;background:linear-gradient(160deg,#3b1f8f,#1d6bd6 60%,#0b2a5a);color:#fff;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.vtop{display:flex;align-items:center;gap:8px;padding:10px 8px}.vtop .vt{font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vtop .vs{font-size:12px;opacity:.8}
+#vbody{flex:1;overflow-y:auto;padding:10px 16px}
+.vsp{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 8px;justify-items:center;margin-top:10px}
+.vsk{text-align:center;width:100%}
+.vav{position:relative;width:76px;height:76px;margin:0 auto;border-radius:50%}
+.vsk.on .vav{box-shadow:0 0 0 3px #fff,0 0 0 8px rgba(255,255,255,.35);animation:vpulse 1s infinite}
+.vmic{position:absolute;right:-4px;bottom:-2px;background:#fff;color:#000;border-radius:50%;width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center}.vmic:empty{display:none}
+.vnm{margin-top:6px;font-weight:700;font-size:14px}.vrl{font-size:11px;opacity:.8}
+.vlh{margin:26px 0 8px;font-weight:700;opacity:.9}.vln{display:flex;flex-wrap:wrap;gap:14px}.vls{text-align:center;width:54px}
+.vph{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:26px}
+.vbar{display:flex;align-items:center;gap:10px;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:rgba(0,0,0,.28)}
+.vbtn{border-radius:99px;padding:12px 18px;font-weight:700;background:rgba(255,255,255,.18);color:#fff;white-space:nowrap}.vbtn.w{background:#fff;color:#1d3bd6}.vbtn.r{background:#f4212e}
+@keyframes vpulse{50%{box-shadow:0 0 0 3px #fff,0 0 0 12px rgba(255,255,255,.15)}}
+.vfl{position:absolute;bottom:90px;font-size:30px;animation:vfly 2.2s ease-out forwards;pointer-events:none}
+@keyframes vfly{to{transform:translateY(-260px);opacity:0}}
+.vwave{position:absolute;left:0;right:0;top:58%;display:flex;gap:6px;justify-content:center;height:50px;align-items:flex-end}.vwave i{width:6px;background:rgba(255,255,255,.7);border-radius:3px;animation:vw 1s infinite ease-in-out}.vwave i:nth-child(2){animation-delay:.15s}.vwave i:nth-child(3){animation-delay:.3s}.vwave i:nth-child(4){animation-delay:.45s}.vwave i:nth-child(5){animation-delay:.6s}
+@keyframes vw{0%,100%{height:10px}50%{height:46px}}
 </style>
 </head>
 <body>
@@ -1403,7 +1423,8 @@ function giftBump(s,g){const pill=$('#lw',s);if(!pill)return;const net=g.p*(100-
 const shownGifts=new Set();
 
 /* ---------- lives inside the feed ---------- */
-function liveCard(p){const u=U(p.uid);return `<section class="card livecard" data-live="${p.live}" data-lid="${p.id}"><video playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111"></video><div style="position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(0,0,0,.75))"></div><div style="position:absolute;top:calc(100px + env(safe-area-inset-top));left:14px;display:flex;gap:8px;align-items:center;z-index:3"><span class="livepill" style="position:static;transform:none;border:0;padding:3px 9px">${p.voice?'🎙 VOICE ROOM':'LIVE'}</span></div><div class="info" style="right:12px"><div class="nm"><span data-a="prof" data-id="${u.id}">${nameOf(u)}</span></div><div class="cap">${esc(String(p.text).replace('🔴 ','').replace('🎙 ',''))}</div><button class="btn red" style="padding:10px 24px;margin-top:6px" data-a="joinlive" data-id="${p.live}">Watch live</button></div><div class="lcs" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;z-index:1;pointer-events:none">Connecting…</div></section>`}
+function voiceCard(p){const u=U(p.uid);return `<section class="card livecard vcard" data-lid="${p.id}" style="background:linear-gradient(160deg,#3b1f8f,#1d6bd6 60%,#0b2a5a)"><div style="position:absolute;top:calc(100px + env(safe-area-inset-top));left:14px;z-index:3"><span class="livepill" style="position:static;transform:none;border:0;padding:3px 9px">🎙 VOICE ROOM</span></div><div style="position:absolute;left:0;right:0;top:24%;text-align:center;color:#fff;padding:0 20px">${av(u,110)}<div style="font-size:22px;font-weight:800;margin-top:16px">${esc(String(p.text).replace('🎙 ',''))}</div><div style="opacity:.85;margin-top:6px">${nameOf(u)} is hosting</div></div><div class="vwave"><i></i><i></i><i></i><i></i><i></i></div><div class="info" style="right:12px"><button class="btn" style="background:#fff;color:#1d3bd6;padding:12px 26px;font-weight:800;margin-top:6px" data-a="joinlive" data-id="${p.live}">🎧 Join the room</button></div></section>`}
+function liveCard(p){if(p.voice)return voiceCard(p);const u=U(p.uid);return `<section class="card livecard" data-live="${p.live}" data-lid="${p.id}"><video playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111"></video><div style="position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(0,0,0,.75))"></div><div style="position:absolute;top:calc(100px + env(safe-area-inset-top));left:14px;display:flex;gap:8px;align-items:center;z-index:3"><span class="livepill" style="position:static;transform:none;border:0;padding:3px 9px">${p.voice?'🎙 VOICE ROOM':'LIVE'}</span></div><div class="info" style="right:12px"><div class="nm"><span data-a="prof" data-id="${u.id}">${nameOf(u)}</span></div><div class="cap">${esc(String(p.text).replace('🔴 ','').replace('🎙 ',''))}</div><button class="btn red" style="padding:10px 24px;margin-top:6px" data-a="joinlive" data-id="${p.live}">Watch live</button></div><div class="lcs" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;z-index:1;pointer-events:none">Connecting…</div></section>`}
 const INL={peer:null,conn:null,c:null};
 async function inlineLive(c){inlineStop();INL.c=c;const id=c.dataset.live,v=$('video',c),st=$('.lcs',c);try{await loadPeer()}catch(e){if(st)st.textContent='Tap Watch live';return}if(INL.c!==c)return;
  let got=false;const peer=new Peer(undefined,peerOpts());INL.peer=peer;
@@ -1639,7 +1660,7 @@ A.aisend=async()=>{const inp=$('#aiq'),text=(inp&&inp.value||'').trim();if(!text
  const a=await aiAsk(text,h,pic);const h2=aiHist();h2.push({r:'ai',t:a});aiSave(h2);if(view.n==='ai')render()};
 /* ---------- VELTEX Community ---------- */
 const canCommPost=u=>!!(u&&(u.isAdmin||u.id==='u_comm'||(u.comm&&S.settings.commOpen)));
-A.voiceroom=cid=>{window._voiceComm=(typeof cid==='string'&&cid)?cid:'vx';const u=me();if(!(u.vxb||isAdmin()))return toast('Only accounts with the VELTEX badge can host voice rooms');window._voice=true;const s=sheet(`<div class="sh-h"><button data-x>${ic('x')}</button><b>Start a voice room</b></div><div class="pad"><p class="mu" style="margin:0 0 10px">Talk with your community. Members listen, and can ask for a seat to speak. Only your microphone is used.</p><input id="ltitle" placeholder="What is the room about?" maxlength="80"><button class="btn red" style="width:100%;margin-top:12px;padding:12px" id="vgo">Start voice room</button></div>`);$('#vgo',s).onclick=()=>{s.cl();A.golive()}};
+A.voiceroom=cid=>{window._voiceComm=(typeof cid==='string'&&cid)?cid:'vx';const u=me();if(!(u.vxb||isAdmin()))return toast('Only accounts with the VELTEX badge can host voice rooms');window._voice=true;const s=sheet(`<div class="sh-h"><button data-x>${ic('x')}</button><b>Start a voice room</b></div><div class="pad"><p class="mu" style="margin:0 0 10px">Talk with your community. Members listen, and can ask for a seat to speak. Only your microphone is used.</p><input id="ltitle" placeholder="What is the room about?" maxlength="80"><button class="btn red" style="width:100%;margin-top:12px;padding:12px" id="vgo">Start voice room</button></div>`);$('#vgo',s).onclick=()=>{s.cl();A.govoice()}};
 function voiceHtml(){const L=S.posts.filter(p=>p.voice&&p.live&&!p.liveEnded&&Date.now()-p.ts<4*36e5&&U(p.uid)&&!U(p.uid).banned),u=me();return (L.length?`<div class="sec">🎙 Voice rooms live now</div>`+L.map(p=>`<div class="item" data-a="joinlive" data-id="${p.live}">${av(U(p.uid),46)}<div class="fx">${nameOf(U(p.uid),15)}<br><small>${esc(String(p.text).replace('🎙 ',''))} · ${ago(p.ts)}</small></div><span class="btn red sm">Listen</span></div>`).join(''):'')+((u.vxb||isAdmin())?`<div class="pad" style="padding-bottom:0"><button class="btn red" style="width:100%;padding:12px" data-a="voiceroom">🎙 Start a voice room</button></div>`:'')}
 A.commjoin=()=>{const u=me();u.comm=true;const o=U(A_ID);if(o&&!o.subs.includes(u.id)){o.subs.push(u.id);(o.sg=o.sg||[]).push(Date.now());notify(A_ID,'sub',u.id)}save();toast('You joined the VELTEX Community');render()};
 A.commleave=()=>{if(!confirm('Leave the VELTEX Community?'))return;me().comm=false;save();render()};
@@ -1932,6 +1953,66 @@ function commAdminHtml(){const L=Array.isArray(S.settings.comms)?S.settings.comm
 document.addEventListener('change',async e=>{try{if(e.target&&e.target.id==='cm_img'){const f=e.target.files[0];window._cmimg=f?await picData(f,160):''}}catch(x){}});
 A['a-ccreate']=adm(()=>{const name=($('#cm_nm').value||'').trim(),desc=($('#cm_ds').value||'').trim();if(name.length<3)return toast('Enter a name');if(desc.length<10)return toast('Write a short description');S.settings.comms=[...(Array.isArray(S.settings.comms)?S.settings.comms:[]),{id:'c_'+uid(),name,cat:$('#cm_ct').value,desc,img:window._cmimg||'',ts:Date.now(),by:me().id}];window._cmimg='';save();toast('Community created');render()});
 A['a-cdel']=adm(id=>{if(!confirm('Delete this community?'))return;S.settings.comms=(S.settings.comms||[]).filter(c=>c.id!==id);save();render()});
+
+/* ---------- voice rooms: X Spaces style, anyone can join and speak ---------- */
+const VR={max:9};
+function vrHtml(o){const sp=o.speakers.map(s=>{const us=U(s.u);return `<div class="vsk${s.sp?' on':''}"><div class="vav">${us?av(us,76):`<div class="vph">${esc((s.n||'?')[0])}</div>`}<span class="vmic">${s.m?'':'🔇'}</span></div><div class="vnm">${esc((s.n||'').split(' ')[0])}</div><div class="vrl">${s.host?'Host':'Speaker'}</div></div>`}).join(''),ln=o.listeners.map(l=>{const us=U(l.u);return `<div class="vls">${us?av(us,46):`<div class="vph" style="width:46px;height:46px;font-size:18px">${esc((l.n||'?')[0])}</div>`}<div class="vnm" style="font-size:11px">${esc((l.n||'').split(' ')[0])}</div></div>`}).join('');return `<div class="vsp">${sp}</div><div class="vlh">${o.listeners.length} listening</div><div class="vln">${ln||'<div style="opacity:.7;padding:6px 0">Nobody is listening yet. Share the room link.</div>'}</div>`}
+function vrOverlay(title,id){const el=document.createElement('div');el.className='vrm';el.innerHTML=`<div class="vtop"><button class="ib" id="vx" style="color:#fff" aria-label="Close">${ic('x')}</button><div class="fx" style="min-width:0"><div class="vt">🎙 ${esc(title)}</div><div class="vs" id="vsub">Connecting…</div></div><button class="ib" id="vsh" style="color:#fff" aria-label="Copy link">${ic('share')}</button></div><div id="vbody"></div><div class="vbar" id="vbar"></div>`;document.body.appendChild(el);$('#vsh',el).onclick=async()=>{const url=location.origin+location.pathname+'?live='+id;try{await navigator.clipboard.writeText(url);toast('Room link copied')}catch(e){prompt('Copy the room link',url)}};return el}
+function vrFloat(el,e){const f=document.createElement('div');f.className='vfl';f.textContent=e;f.style.left=(12+Math.random()*70)+'%';el.appendChild(f);setTimeout(()=>f.remove(),2300)}
+const VR_EMO=['👏','❤️','🔥','😂'];
+A.govoice=async()=>{const u=me();if(!(u.vxb||isAdmin()))return toast('Only accounts with the VELTEX badge can host voice rooms');const title=(($('#ltitle')||{}).value||'Voice room').trim().slice(0,80);
+ if(!navigator.mediaDevices)return toast('The microphone needs https. Open the hosted site.');
+ let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){return toast('Allow the microphone to start a voice room')}
+ try{await loadPeer()}catch(e){st.getTracks().forEach(x=>x.stop());return toast('Could not reach the live network. Check your internet.')}
+ const id='vltx'+Math.random().toString(36).slice(2,9),peer=new Peer(id,peerOpts()),viewers={},speakers=[{u:u.id,n:u.name,m:true,sp:false,host:true}],approved=new Map();
+ const AC=window.AudioContext||window.webkitAudioContext;let ac=null,dAll=null;const src={},dest={};try{ac=new AC();dAll=ac.createMediaStreamDestination()}catch(e){ac=null}
+ const addSrc=(k,stream)=>{if(!ac||!stream.getAudioTracks().length)return;try{const n=ac.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));src[k]=n;n.connect(dAll);for(const q in dest)if(q!==k)n.connect(dest[q])}catch(e){}};
+ const addDest=k=>{const d=ac.createMediaStreamDestination();dest[k]=d;for(const q in src)if(q!==k)src[q].connect(d);return d};
+ const rmKey=k=>{if(src[k]){try{src[k].disconnect()}catch(e){}delete src[k]}delete dest[k]};
+ if(ac){addSrc('host',st);try{ac.resume()}catch(e){}}
+ const mixAll=new MediaStream(dAll?dAll.stream.getAudioTracks():st.getAudioTracks());
+ const el=vrOverlay(title,id),conns=()=>Object.values(viewers).map(v=>v.conn).filter(c=>c&&c.open),cast=(d,ex)=>conns().forEach(c=>{if(c!==ex)try{c.send(d)}catch(e){}});
+ const state=()=>({title,speakers:speakers.map(s=>({u:s.u,n:s.n,m:s.m,sp:s.sp,host:!!s.host})),listeners:Object.values(viewers).filter(v=>v.u&&!speakers.some(s=>s.u===v.u)).map(v=>({u:v.u,n:v.n}))});
+ let mutedHost=false;
+ const bar=()=>{$('#vbar',el).innerHTML=`<button class="vbtn ${mutedHost?'':'w'}" id="hmic">${mutedHost?'🔇 Unmute':'🎤 Mute'}</button>${VR_EMO.slice(0,3).map(e=>`<button class="vbtn" data-e="${e}">${e}</button>`).join('')}<div class="fx"></div><button class="vbtn r" id="hend">End</button>`};
+ const paint=()=>{const s=state();$('#vbody',el).innerHTML=vrHtml(s);const sub=$('#vsub',el);if(sub)sub.textContent=(s.speakers.length)+' speaking · '+s.listeners.length+' listening'};
+ const castRoom=()=>{paint();cast({t:'room',...state()})};
+ bar();paint();
+ $('#vbar',el).onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='hmic'){const tr=st.getAudioTracks()[0];if(!tr)return;tr.enabled=!tr.enabled;mutedHost=!tr.enabled;speakers[0].m=tr.enabled;if(!tr.enabled)speakers[0].sp=false;bar();castRoom()}else if(b.id==='hend'){if(confirm('End this voice room for everyone?'))closeRoom()}else if(b.dataset.e){vrFloat(el,b.dataset.e);cast({t:'rx',e:b.dataset.e})}};
+ $('#vx',el).onclick=()=>{if(confirm('End this voice room for everyone?'))closeRoom()};
+ const freeSpeaker=i=>{const sd=speakers[i];if(!sd||sd.host)return;rmKey(sd.u);speakers.splice(i,1);const vi=viewers[sd.p];if(vi&&vi.conn&&vi.conn.open){try{peer.call(sd.p,mixAll)}catch(e){}}castRoom()};
+ peer.on('open',()=>{const sub=$('#vsub',el);if(sub)sub.textContent='Live · share the link so people can join'});
+ peer.on('connection',c=>{c.on('open',()=>{viewers[c.peer]={conn:c};try{peer.call(c.peer,mixAll)}catch(e){}c.send({t:'hi',title,...state()});castRoom()});
+  c.on('data',d=>{if(d.t==='hello'){const v=viewers[c.peer];if(v){v.u=d.u;v.n=String(d.n||'Guest').slice(0,24)}castRoom()}
+   else if(d.t==='seatreq'){if(speakers.some(x=>x.u===d.u))return;if(speakers.length>VR.max){try{c.send({t:'seatno'})}catch(e){}return}approved.set(d.u,Date.now()+180000);try{c.send({t:'seatok'})}catch(e){}}
+   else if(d.t==='sp'||d.t==='st'){const i=speakers.findIndex(x=>x.p===c.peer);if(i>0){if(d.t==='sp')speakers[i].sp=!!d.on&&speakers[i].m;else{speakers[i].m=!!d.m;if(!d.m)speakers[i].sp=false}castRoom()}}
+   else if(d.t==='leave'){const i=speakers.findIndex(x=>x.p===c.peer);if(i>0)freeSpeaker(i)}
+   else if(d.t==='rx'){vrFloat(el,String(d.e).slice(0,4));cast(d,c)}});
+  c.on('close',()=>{delete viewers[c.peer];const i=speakers.findIndex(x=>x.p===c.peer);if(i>0)freeSpeaker(i);else castRoom()})});
+ peer.on('call',call=>{const md=call.metadata||{};if(!md.guest||!ac||!((approved.get(md.uid)||0)>Date.now())||speakers.some(x=>x.u===md.uid)){try{call.close()}catch(e){}return}
+  const d=addDest(md.uid);speakers.push({u:md.uid,n:String(md.name||'Guest').slice(0,24),m:true,sp:false,p:call.peer,call});call.answer(d.stream);call.on('stream',rs=>addSrc(md.uid,rs));call.on('close',()=>{const i=speakers.findIndex(x=>x.call===call);if(i>0)freeSpeaker(i)});castRoom()});
+ peer.on('error',e=>toast('Voice room error: '+e.type));
+ const stopW=watchMic(st,on=>{speakers[0].sp=on&&speakers[0].m;castRoom()});
+ function closeRoom(){stopW();cast({t:'end'});try{st.getTracks().forEach(x=>x.stop())}catch(e){}try{peer.destroy()}catch(e){}try{ac&&ac.close()}catch(e){}el.remove();const lp=S.posts.find(p=>p.live===id);if(lp){lp.liveEnded=true;save()}act('live',`@${u.username} ended a voice room`)}
+ adminNote(`@${u.username} started a voice room: ${title}`);
+ const p={id:uid(),uid:sess.cur,text:'🎙 '+title,mt:'text',mid:null,ts:Date.now(),likes:[],reposts:[],comments:[],views:0,live:id,voice:true,cm:window._voiceComm||'vx'};S.posts.unshift(p);act('live',`@${u.username} started a voice room: ${title}`);save();toast('Your voice room is live')};
+A.joinvoice=async id=>{const lp=S.posts.find(p=>p.live===id);if(lp&&lp.liveEnded)return toast('This voice room has ended');const u=me();if(!u)return;if(!navigator.mediaDevices)return toast('Voice rooms need https. Open the hosted site.');try{await loadPeer()}catch(e){return toast('Could not reach the live network. Check your internet.')}
+ const title=lp?String(lp.text).replace('🎙 ',''):'Voice room',el=vrOverlay(title,id),au=document.createElement('audio');au.autoplay=true;au.playsInline=true;au.style.display='none';el.appendChild(au);
+ let st0={title,speakers:[],listeners:[]},peer=new Peer(undefined,peerOpts()),conn=null,mic=null,gcall=null,stopW=null,role='listener',muted=false,ended=false;
+ const bar=()=>{const b=$('#vbar',el);if(!b)return;b.innerHTML=role==='speaker'?`<button class="vbtn ${muted?'':'w'}" id="mmic">${muted?'🔇 Unmute':'🎤 Mute'}</button>${VR_EMO.slice(0,3).map(e=>`<button class="vbtn" data-e="${e}">${e}</button>`).join('')}<div class="fx"></div><button class="vbtn" id="mstop">Stop speaking</button>`:`<button class="vbtn r" id="mleave">Leave quietly</button>${VR_EMO.slice(0,3).map(e=>`<button class="vbtn" data-e="${e}">${e}</button>`).join('')}<div class="fx"></div><button class="vbtn w" id="mspeak">🎤 Speak</button>`};
+ const paint=()=>{const b=$('#vbody',el);if(b)b.innerHTML=vrHtml(st0);const sub=$('#vsub',el);if(sub)sub.textContent=st0.speakers.length+' speaking · '+st0.listeners.length+' listening'};
+ const out=()=>{if(ended)return;ended=true;try{stopW&&stopW()}catch(e){}try{conn&&conn.open&&conn.send({t:'leave'})}catch(e){}try{mic&&mic.getTracks().forEach(x=>x.stop())}catch(e){}try{gcall&&gcall.close()}catch(e){}try{peer.destroy()}catch(e){}el.remove()};
+ const stopSpeaking=()=>{try{stopW&&stopW();stopW=null}catch(e){}try{mic&&mic.getTracks().forEach(x=>x.stop())}catch(e){}mic=null;try{gcall&&gcall.close()}catch(e){}gcall=null;try{conn&&conn.open&&conn.send({t:'leave'})}catch(e){}role='listener';muted=false;bar()};
+ const becomeSpeaker=async()=>{try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch(e){role='listener';bar();return toast('Allow the microphone to speak')}
+  gcall=peer.call(id,mic,{metadata:{guest:true,uid:u.id,name:u.name}});gcall.on('stream',rs=>{au.srcObject=rs;au.play().catch(()=>{})});gcall.on('close',()=>{if(role==='speaker')stopSpeaking()});role='speaker';muted=false;bar();stopW=watchMic(mic,on=>{try{conn&&conn.open&&conn.send({t:'sp',on})}catch(e){}})};
+ bar();paint();
+ $('#vbar',el).onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='mleave')out();else if(b.id==='mspeak'){if(!conn||!conn.open)return toast('Still connecting…');try{conn.send({t:'seatreq',u:u.id,n:u.name})}catch(x){}}else if(b.id==='mstop')stopSpeaking();else if(b.id==='mmic'){const tr=mic&&mic.getAudioTracks()[0];if(!tr)return;tr.enabled=!tr.enabled;muted=!tr.enabled;try{conn.send({t:'st',m:tr.enabled})}catch(x){}bar()}else if(b.dataset.e){vrFloat(el,b.dataset.e);try{conn&&conn.open&&conn.send({t:'rx',e:b.dataset.e})}catch(x){}}};
+ $('#vx',el).onclick=out;
+ peer.on('open',()=>{conn=peer.connect(id,{reliable:true});conn.on('open',()=>{conn.send({t:'hello',u:u.id,n:u.name});const sub=$('#vsub',el);if(sub)sub.textContent='Connected'});
+  conn.on('data',d=>{if(d.t==='hi'||d.t==='room'){st0={title:d.title||title,speakers:d.speakers||[],listeners:d.listeners||[]};paint()}else if(d.t==='seatok')becomeSpeaker();else if(d.t==='seatno')toast('The room has no free speaker spots');else if(d.t==='kick')stopSpeaking();else if(d.t==='rx')vrFloat(el,String(d.e).slice(0,4));else if(d.t==='end'){toast('The host ended the voice room');out()}});
+  conn.on('close',()=>{if(!ended){toast('The voice room ended');out()}})});
+ peer.on('call',call=>{call.answer();call.on('stream',rs=>{if(role!=='speaker'||!gcall){au.srcObject=rs;au.play().catch(()=>{})}})});
+ peer.on('error',e=>{if(!ended){const sub=$('#vsub',el);if(sub)sub.textContent='Could not connect to the room';if(e.type==='peer-unavailable'){toast('This voice room is not available any more');out()}}})};
 /* ---------- settings ---------- */
 const SET_T={acct:'Your account',ainfo:'Account information',sec:'Security and account access',priv:'Privacy and safety',noti:'Notifications',disp:'Display and sound',help:'Help Centre'};
 const pref=(u,k,d=true)=>u&&u.prefs&&u.prefs[k]!==undefined?u.prefs[k]:d;
@@ -2221,7 +2302,7 @@ A.seatacc=id=>LV.acc&&LV.acc(id);
 A.seatrej=id=>LV.rej&&LV.rej(id);
 A.livechat=()=>{const i=$('#lci');if(!i||!i.value.trim())return;LV.say&&LV.say(i.value.trim());i.value=''};
 A.joincode=()=>{let v=$('#lcode').value.trim();const m=v.match(/live=([\w]+)/);if(m)v=m[1];if(!v)return toast('Paste a live link or code');A.joinlive(v)};
-A.joinlive=async id=>{const lp0=S.posts.find(p=>p.live===id);if(lp0&&lp0.liveEnded)return toast('This live has ended');try{await loadPeer()}catch(e){return toast('Could not reach the live network')}
+A.joinlive=async id=>{const lp0=S.posts.find(p=>p.live===id);if(lp0&&lp0.liveEnded)return toast('This live has ended');if(lp0&&lp0.voice)return A.joinvoice(id);try{await loadPeer()}catch(e){return toast('Could not reach the live network')}
  const s=sheet(`<div class="sh-h"><button data-x>${ic('x')}</button><b id="lt" class="fx">Connecting…</b><span class="lw" id="lw" data-t="0">🎁 ${fm(0)}</span></div><div class="sb pad"><div class="lvwrap"><video id="lv" autoplay playsinline muted></video><div id="seatov"></div></div><div class="row" style="margin:8px 0;justify-content:center;flex-wrap:wrap"><button class="btn out sm" id="lun">Unmute</button><span id="gctl" class="row" hidden><button class="ib" id="gmic" style="border:1px solid var(--bd)">${ic('mic',22)}</button><button class="ib" id="gcam" style="border:1px solid var(--bd)">${ic('video',22)}</button><button class="btn red sm" id="gleave">Leave seat</button></span></div><div class="live-ch" id="lch"></div><div class="bar"><input id="lci" placeholder="Say something" data-enter="livechat"><button class="send" style="background:var(--gold);color:#000" data-a="livegift" aria-label="Send gift">${ic('gift',22)}</button></div></div>`);
  const lp=S.posts.find(p=>p.live===id);LV.hostUid=lp?lp.uid:null;
  const peer=new Peer(undefined,peerOpts());let conn,seatsS=[null,null,null,null],guest=false,gs=null,gcall=null,stopW=null,wait=false;
