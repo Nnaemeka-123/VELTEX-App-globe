@@ -322,6 +322,16 @@ html.kb #app.imm #main{bottom:0}
 .vwave{position:absolute;left:0;right:0;top:58%;display:flex;gap:6px;justify-content:center;height:50px;align-items:flex-end}.vwave i{width:6px;background:rgba(255,255,255,.7);border-radius:3px;animation:vw 1s infinite ease-in-out}.vwave i:nth-child(2){animation-delay:.15s}.vwave i:nth-child(3){animation-delay:.3s}.vwave i:nth-child(4){animation-delay:.45s}.vwave i:nth-child(5){animation-delay:.6s}
 @keyframes vw{0%,100%{height:10px}50%{height:46px}}
 .chat>.bub,.chat>a.bub{flex:none}
+
+/* normal TikTok screen: the video sits above a solid bottom bar */
+#app.imm #main{top:0;bottom:calc(var(--nb) + env(safe-area-inset-bottom));height:auto}
+#app.imm #bottom{background:#000;color:#fff;border-top:0}
+#app.imm .vc{bottom:0}
+#app.imm .info{bottom:22px}
+#app.imm .rail{bottom:86px}
+#app.imm .cdots{bottom:18px}
+#app.imm #top{background:linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.35) 60%,rgba(0,0,0,0))}
+html.kb #app.imm #main{bottom:0}
 </style>
 </head>
 <body>
